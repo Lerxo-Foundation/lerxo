@@ -5,6 +5,8 @@ extern crate alloc;
 
 use uefi::prelude::*;
 
+mod filesystem;
+
 #[entry]
 fn main(
     _image_handle: Handle,
