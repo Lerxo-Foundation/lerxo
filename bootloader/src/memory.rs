@@ -4,13 +4,11 @@ use uefi::Status;
 
 pub const PAGE_SIZE: u64 = 4096;
 
-/// Retrieves the current UEFI memory map.
 pub fn get_memory_map() -> Result<MemoryMapOwned, Status> {
     boot::memory_map(MemoryType::LOADER_DATA)
         .map_err(|error| error.status())
 }
 
-/// Returns the physical ranges currently marked as conventional memory.
 pub fn usable_regions(
     memory_map: &MemoryMapOwned,
 ) -> impl Iterator<Item = (u64, u64)> + '_ {
