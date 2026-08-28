@@ -7,3 +7,4 @@ edition = "2024"
 uefi = { version = "0.33", features = ["alloc"] }
 log = "0.4"
 goblin = { version = "0.10", default-features = false, features = ["elf64"] }
+x86_64 = { version = "0.15", default-features = false, features = ["instructions"] }
