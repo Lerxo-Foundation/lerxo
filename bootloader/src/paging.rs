@@ -1,7 +1,10 @@
 use x86_64::{
+    VirtAddr,
     PhysAddr,
     structures::paging::{
         FrameAllocator,
+        OffsetPageTable,
+        PageTable,
         PhysFrame,
         Size4KiB,
     },
@@ -40,4 +43,15 @@ unsafe impl FrameAllocator<Size4KiB> for BootFrameAllocator {
 
         Some(frame)
     }
+}
+
+/// Creates a mapper for an existing x86-64 page-table hierarchy.
+///
+/// `phys_offset` must correspond to a virtual mapping of all physical
+/// memory. The caller must also provide the currently active level-4 table.
+pub unsafe fn create_mapper(
+    level_4_table: &'static mut PageTable,
+    phys_offset: VirtAddr,
+) -> OffsetPageTable<'static> {
+    OffsetPageTable::new(level_4_table, phys_offset)
 }
