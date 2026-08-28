@@ -14,6 +14,10 @@ pub struct BootFrameAllocator {
 
 impl BootFrameAllocator {
     pub fn new(start: u64, end: u64) -> Self {
+        assert!(start % Size4KiB::SIZE == 0);
+        assert!(end % Size4KiB::SIZE == 0);
+        assert!(start <= end);
+
         Self {
             next: start,
             end,
