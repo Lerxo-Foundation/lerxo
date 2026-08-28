@@ -9,6 +9,8 @@ mod filesystem;
 
 mod elf; 
 
+mod loader; 
+
 #[entry]
 fn main(
     _image_handle: Handle,
