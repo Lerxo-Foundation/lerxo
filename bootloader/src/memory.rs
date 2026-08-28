@@ -1,6 +1,5 @@
 use uefi::boot;
-use uefi::mem::memory_map::MemoryMapOwned;
-use uefi::mem::MemoryType;
+use uefi::mem::memory_map::{MemoryMapOwned, MemoryType};
 use uefi::Status;
 
 pub fn get_memory_map() -> Result<MemoryMapOwned, Status> {
@@ -14,7 +13,5 @@ pub fn is_usable(memory_type: MemoryType) -> bool {
         MemoryType::CONVENTIONAL
             | MemoryType::BOOT_SERVICES_CODE
             | MemoryType::BOOT_SERVICES_DATA
-            | MemoryType::LOADER_CODE
-            | MemoryType::LOADER_DATA
     )
 }
