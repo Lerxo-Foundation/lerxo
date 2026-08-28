@@ -46,7 +46,7 @@ pub fn load_segments(
             pages,
         )?;
 
-        let destination_address = destination.as_ptr() as usize;
+        let physical_address = destination.as_ptr() as usize;
 
         unsafe {
             let destination_slice =
@@ -57,7 +57,8 @@ pub fn load_segments(
 
             let source = &kernel.data()[file_offset..file_end];
 
-            destination_slice[..file_size].copy_from_slice(source);
+            destination_slice[..file_size]
+                .copy_from_slice(source);
 
             ptr::write_bytes(
                 destination_slice[file_size..].as_mut_ptr(),
@@ -68,7 +69,7 @@ pub fn load_segments(
 
         segments.push(LoadedSegment {
             virtual_address: segment.p_vaddr,
-            physical_address: destination_address,
+            physical_address,
             memory_size,
         });
     }
