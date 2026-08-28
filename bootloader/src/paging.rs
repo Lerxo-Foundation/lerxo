@@ -1,57 +1,83 @@
+use uefi::mem::memory_map::{MemoryMap, MemoryMapOwned, MemoryType};
 use x86_64::{
-    VirtAddr,
     PhysAddr,
     structures::paging::{
         FrameAllocator,
-        OffsetPageTable,
-        PageTable,
         PhysFrame,
         Size4KiB,
     },
 };
 
 pub struct BootFrameAllocator {
-    next: u64,
-    end: u64,
+    regions: MemoryMapOwned,
+    region_index: usize,
+    next_frame: u64,
 }
 
 impl BootFrameAllocator {
-    pub fn new(start: u64, end: u64) -> Self {
-        assert!(start % Size4KiB::SIZE == 0);
-        assert!(end % Size4KiB::SIZE == 0);
-        assert!(start <= end);
-
+    pub fn new(memory_map: MemoryMapOwned) -> Self {
         Self {
-            next: start,
-            end,
+            regions: memory_map,
+            region_index: 0,
+            next_frame: 0,
         }
+    }
+
+    fn find_next_usable_region(&mut self) -> Option<()> {
+        while self.region_index < self.regions.len() {
+            let region = self.regions.get(self.region_index)?;
+
+            if region.ty == MemoryType::CONVENTIONAL
+                && region.page_count > 0
+            {
+                self.next_frame = region.phys_start;
+                return Some(());
+            }
+
+            self.region_index += 1;
+        }
+
+        None
     }
 }
 
 unsafe impl FrameAllocator<Size4KiB> for BootFrameAllocator {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        if self.next >= self.end {
-            return None;
+        loop {
+            if self.region_index >= self.regions.len() {
+                return None;
+            }
+
+            let region = self.regions.get(self.region_index)?;
+
+            if region.ty != MemoryType::CONVENTIONAL
+                || region.page_count == 0
+            {
+                self.region_index += 1;
+                continue;
+            }
+
+            let region_end =
+                region.phys_start + region.page_count * 4096;
+
+            if self.next_frame == 0 {
+                self.next_frame = region.phys_start;
+            }
+
+            if self.next_frame >= region_end {
+                self.region_index += 1;
+                self.next_frame = 0;
+                continue;
+            }
+
+            let frame = PhysFrame::from_start_address(
+                PhysAddr::new(self.next_frame),
+            )
+            .ok()?;
+
+            self.next_frame += Size4KiB::SIZE;
+
+            return Some(frame);
         }
-
-        let frame = PhysFrame::from_start_address(
-            PhysAddr::new(self.next),
-        )
-        .ok()?;
-
-        self.next += Size4KiB::SIZE;
-
-        Some(frame)
     }
-}
-
-/// Creates a mapper for an existing x86-64 page-table hierarchy.
-///
-/// `phys_offset` must correspond to a virtual mapping of all physical
-/// memory. The caller must also provide the currently active level-4 table.
-pub unsafe fn create_mapper(
-    level_4_table: &'static mut PageTable,
-    phys_offset: VirtAddr,
-) -> OffsetPageTable<'static> {
-    OffsetPageTable::new(level_4_table, phys_offset)
 }
