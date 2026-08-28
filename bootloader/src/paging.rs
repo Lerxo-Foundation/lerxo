@@ -1,27 +1,39 @@
-use core::ptr;
+use x86_64::{
+    PhysAddr,
+    structures::paging::{
+        FrameAllocator,
+        PhysFrame,
+        Size4KiB,
+    },
+};
 
-use uefi::boot::{self, AllocateType, MemoryType, PAGE_SIZE};
-use uefi::Status;
+pub struct BootFrameAllocator {
+    next: u64,
+    end: u64,
+}
 
-use x86_64::structures::paging::PageTable;
-
-/// Allocates a zeroed 4 KiB page for a page table.
-pub fn allocate_page_table() -> Result<&'static mut PageTable, Status> {
-    let page = boot::allocate_pages(
-        AllocateType::AnyPages,
-        MemoryType::LOADER_DATA,
-        1,
-    )?;
-
-    let table = page.as_ptr() as *mut PageTable;
-
-    unsafe {
-        ptr::write(table, PageTable::new());
-        Ok(&mut *table)
+impl BootFrameAllocator {
+    pub fn new(start: u64, end: u64) -> Self {
+        Self {
+            next: start,
+            end,
+        }
     }
 }
 
-/// Returns the physical address of a page table.
-pub fn physical_address(table: &PageTable) -> u64 {
-    table as *const PageTable as u64
+unsafe impl FrameAllocator<Size4KiB> for BootFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        if self.next >= self.end {
+            return None;
+        }
+
+        let frame = PhysFrame::from_start_address(
+            PhysAddr::new(self.next),
+        )
+        .ok()?;
+
+        self.next += Size4KiB::SIZE;
+
+        Some(frame)
+    }
 }
