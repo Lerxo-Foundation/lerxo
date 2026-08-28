@@ -16,5 +16,14 @@ fn main(
 
     log::info!("Welcome to the Lerxo Bootloader!");
 
+    match filesystem::load_kernel() {
+        Ok(kernel) => {
+            log::info!("Loaded Lerxo kernel: {} bytes", kernel.len());
+        }
+        Err(error) => {
+            log::error!("Failed to load Lerxo kernel: {:?}", error);
+        }
+    }
+
     loop {}
 }
