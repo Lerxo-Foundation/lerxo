@@ -1,0 +1,7 @@
+[package]
+name = "lerxo-bootloader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+uefi = { version = "0.33", features = ["alloc"] }
