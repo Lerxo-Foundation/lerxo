@@ -7,6 +7,8 @@ use uefi::prelude::*;
 
 mod filesystem;
 
+mod elf; 
+
 #[entry]
 fn main(
     _image_handle: Handle,
