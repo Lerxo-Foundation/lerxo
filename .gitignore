@@ -1,0 +1,22 @@
+# Rust build output
+/target/
+
+# OS images and build artifacts
+*.img
+*.iso
+*.bin
+*.elf
+
+# Editor settings
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
