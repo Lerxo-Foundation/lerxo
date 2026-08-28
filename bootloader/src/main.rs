@@ -11,6 +11,8 @@ mod elf;
 
 mod loader; 
 
+mod paging;
+
 #[entry]
 fn main(
     _image_handle: Handle,
